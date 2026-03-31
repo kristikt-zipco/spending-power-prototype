@@ -94,6 +94,44 @@
     .sp-plan-label { color: var(--zip-text-secondary); }
     .sp-plan-amount { color: var(--zip-text); font-weight: 600; }
 
+    /* Info icon */
+    .info-icon {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 16px; height: 16px; border-radius: 50%;
+      border: 1.5px solid var(--zip-text-secondary); color: var(--zip-text-secondary);
+      font-size: 10px; font-weight: 700; font-style: italic; font-family: Georgia, serif;
+      cursor: pointer; margin-left: 4px; vertical-align: middle;
+      transition: all 0.2s; line-height: 1; position: relative; top: -1px;
+    }
+    .info-icon:hover { border-color: var(--zip-purple); color: var(--zip-purple); }
+
+    /* Modal */
+    .modal-backdrop {
+      display: none; position: absolute; inset: 0; z-index: 100;
+      background: rgba(0,0,0,0.45); align-items: center; justify-content: center;
+      padding: 32px 24px; border-radius: 44px;
+    }
+    .modal-backdrop.visible { display: flex; }
+    .modal-card {
+      background: var(--zip-card); border-radius: 16px; padding: 24px;
+      max-width: 300px; width: 100%; position: relative;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+    }
+    .modal-close {
+      position: absolute; top: 12px; right: 14px;
+      background: none; border: none; font-size: 20px; color: var(--zip-text-secondary);
+      cursor: pointer; padding: 4px; line-height: 1;
+    }
+    .modal-close:hover { color: var(--zip-text); }
+    .modal-title { font-size: 16px; font-weight: 700; color: var(--zip-text); margin-bottom: 12px; padding-right: 24px; }
+    .modal-body { font-size: 13px; color: var(--zip-text-secondary); line-height: 1.55; margin-bottom: 20px; }
+    .modal-btn {
+      width: 100%; padding: 12px; border: none; border-radius: 12px;
+      background: var(--zip-purple); color: #fff; font-family: inherit;
+      font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s;
+    }
+    .modal-btn:hover { background: var(--zip-purple-light); }
+
     /* Section headers */
     .section-title { font-size: 15px; font-weight: 700; color: var(--zip-text); margin-bottom: 14px; }
 
@@ -244,6 +282,14 @@
     </div>
   </div>
   <div class="screen-content" id="screen"></div>
+  <div class="modal-backdrop" id="legal-modal">
+    <div class="modal-card">
+      <button class="modal-close" id="modal-close-x">&times;</button>
+      <div class="modal-title">About your spending power limit</div>
+      <div class="modal-body">Your Estimated Spending Power limit is determined by Zip and WebBank and is subject to change at their reasonable discretion. Your limit may increase or decrease based on a number of factors including payment history, account standing, and other criteria. This is not a guarantee of credit and does not represent a committed line.<br><br><em style="color:#999; font-size:11px;">Final legal copy to be provided.</em></div>
+      <button class="modal-btn" id="modal-close-btn">Got it</button>
+    </div>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
@@ -384,7 +430,7 @@ function renderScenario(name) {
   html += '<div class="card">';
   html += '<div class="sp-label">Estimated spending power</div>';
   html += '<div class="sp-amount ' + (s.available === 0 ? 'zero' : '') + '">' + fmt(s.available) + '</div>';
-  html += '<div class="sp-subtitle">of ' + fmt(s.limit) + ' total limit</div>';
+  html += '<div class="sp-subtitle">of ' + fmt(s.limit) + ' total limit <span class="info-icon" id="limit-info">i</span></div>';
   html += '<div class="sp-divider"></div>';
   html += '<div class="sp-plan-row"><span class="sp-plan-label">Pay in 2, 4, or 8</span><span class="sp-plan-amount">' + fmt(s.available) + '</span></div>';
   html += '</div>';
@@ -561,6 +607,20 @@ document.querySelectorAll('.scenario-tab').forEach(function(tab) {
     tab.classList.add('active');
     renderScenario(tab.dataset.scenario);
   });
+});
+
+// ===================== LEGAL MODAL =====================
+var modal = document.getElementById('legal-modal');
+function openModal() { modal.classList.add('visible'); }
+function closeModal() { modal.classList.remove('visible'); }
+
+document.getElementById('modal-close-x').addEventListener('click', closeModal);
+document.getElementById('modal-close-btn').addEventListener('click', closeModal);
+modal.addEventListener('click', function(e) { if (e.target === modal) closeModal(); });
+
+// Delegate click for info icon (re-rendered on tab switch)
+document.getElementById('screen').addEventListener('click', function(e) {
+  if (e.target.id === 'limit-info' || e.target.classList.contains('info-icon')) openModal();
 });
 
 // Initial render
